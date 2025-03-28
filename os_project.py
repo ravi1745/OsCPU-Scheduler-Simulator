@@ -3,31 +3,27 @@ from tkinter import messagebox
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# Process class to store process details
+
 class Process:
     def __init__(self, pid, at, bt, priority=0):
         self.pid = pid
-        self.at = at  # Arrival time
-        self.bt = bt  # Burst time
-        self.priority = priority  # Priority (for Priority Scheduling)
-        self.wt = 0   # Waiting time
-        self.tat = 0  # Turnaround time
+        self.at = at  
+        self.bt = bt  
+        self.priority = priority  
+        self.wt = 0   
+        self.tat = 0  
 
-# Main simulator class
 class CPUSchedulerSimulator:
     def __init__(self, root):
         self.root = root
         self.root.title("Intelligent CPU Scheduler Simulator")
         self.root.geometry("800x600")
         
-        # List to store processes
         self.processes = []
         
-        # GUI elements
         self.create_widgets()
 
     def create_widgets(self):
-        # Labels and entry fields for process input
         tk.Label(self.root, text="Number of Processes:").grid(row=0, column=0, padx=5, pady=5)
         self.num_procs = tk.Entry(self.root)
         self.num_procs.grid(row=0, column=1, padx=5, pady=5)
@@ -38,7 +34,7 @@ class CPUSchedulerSimulator:
 
         tk.Button(self.root, text="Enter Processes", command=self.input_processes).grid(row=2, column=0, columnspan=2, pady=10)
 
-        # Algorithm selection
+        
         tk.Label(self.root, text="Select Algorithm:").grid(row=3, column=0, padx=5, pady=5)
         self.algo_var = tk.StringVar(value="FCFS")
         algorithms = [("FCFS", "FCFS"), ("SJF", "SJF"), ("Round Robin", "RR"), ("Priority", "Priority")]
@@ -53,15 +49,12 @@ class CPUSchedulerSimulator:
             if n <= 0:
                 raise ValueError("Number of processes must be positive!")
             
-            # Clear previous processes
             self.processes.clear()
             
-            # Create a new window for process input
             input_window = tk.Toplevel(self.root)
             input_window.title("Enter Process Details")
             input_window.geometry("400x300")
 
-            # Input fields
             tk.Label(input_window, text="PID | Arrival Time | Burst Time | Priority").pack()
             entries = []
             for i in range(n):
@@ -84,7 +77,7 @@ class CPUSchedulerSimulator:
                         pid = pid_e.get()
                         at = float(at_e.get())
                         bt = float(bt_e.get())
-                        pri = float(pri_e.get() or 0)  # Default priority 0 if empty
+                        pri = float(pri_e.get() or 0)  
                         if at < 0 or bt <= 0:
                             raise ValueError("Invalid arrival or burst time!")
                         self.processes.append(Process(pid, at, bt, pri))
@@ -114,7 +107,6 @@ class CPUSchedulerSimulator:
         else:
             quantum = None
 
-        # Run the selected algorithm
         if algo == "FCFS":
             gantt, avg_wt, avg_tat = self.fcfs()
         elif algo == "SJF":
@@ -124,10 +116,8 @@ class CPUSchedulerSimulator:
         elif algo == "Priority":
             gantt, avg_wt, avg_tat = self.priority()
 
-        # Display results
         self.display_results(gantt, avg_wt, avg_tat)
 
-    # FCFS Scheduling
     def fcfs(self):
         processes = sorted(self.processes, key=lambda x: x.at)
         current_time = 0
@@ -143,7 +133,6 @@ class CPUSchedulerSimulator:
         avg_tat = sum(p.tat for p in processes) / len(processes)
         return gantt, avg_wt, avg_tat
 
-    # SJF Scheduling (non-preemptive)
     def sjf(self):
         processes = sorted(self.processes, key=lambda x: x.at)
         current_time = 0
@@ -165,7 +154,6 @@ class CPUSchedulerSimulator:
         avg_tat = sum(p.tat for p in completed) / len(completed)
         return gantt, avg_wt, avg_tat
 
-    # Round Robin Scheduling
     def round_robin(self, quantum):
         processes = sorted(self.processes, key=lambda x: x.at)
         queue = []
@@ -192,7 +180,6 @@ class CPUSchedulerSimulator:
         avg_tat = sum(p.tat for p in self.processes) / len(self.processes)
         return gantt, avg_wt, avg_tat
 
-    # Priority Scheduling (non-preemptive)
     def priority(self):
         processes = sorted(self.processes, key=lambda x: x.at)
         current_time = 0
@@ -203,7 +190,7 @@ class CPUSchedulerSimulator:
             if not available and processes:
                 current_time = processes[0].at
                 continue
-            highest = min(available, key=lambda x: x.priority)  # Lower priority value = higher priority
+            highest = min(available, key=lambda x: x.priority)  
             processes.remove(highest)
             gantt.append((highest.pid, current_time, current_time + highest.bt))
             highest.wt = current_time - highest.at
@@ -215,7 +202,7 @@ class CPUSchedulerSimulator:
         return gantt, avg_wt, avg_tat
 
     def display_results(self, gantt, avg_wt, avg_tat):
-        # Create Gantt chart
+        
         fig, ax = plt.subplots(figsize=(8, 2))
         for pid, start, end in gantt:
             ax.barh(0, end - start, left=start, height=0.5, align='center')
@@ -225,18 +212,15 @@ class CPUSchedulerSimulator:
         ax.set_yticks([])
         ax.set_title("Gantt Chart")
 
-        # Embed chart in Tkinter
         result_window = tk.Toplevel(self.root)
         result_window.title("Simulation Results")
         canvas = FigureCanvasTkAgg(fig, master=result_window)
         canvas.draw()
         canvas.get_tk_widget().pack()
 
-        # Display metrics
         tk.Label(result_window, text=f"Average Waiting Time: {avg_wt:.2f}").pack()
         tk.Label(result_window, text=f"Average Turnaround Time: {avg_tat:.2f}").pack()
 
-# Run the simulator
 if __name__ == "__main__":
     root = tk.Tk()
     app = CPUSchedulerSimulator(root)
